@@ -23,7 +23,6 @@ type UserRepository interface {
 	Create(ctx context.Context, user *User) error
 	Get(ctx context.Context, id uint) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
-	CreateAndActive(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 	Delete(ctx context.Context, id uint) error
 }
 type FollowerRepository interface {
