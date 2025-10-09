@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -37,15 +38,38 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 	return nil
 }
 func (s *UserStore) Delete(ctx context.Context, id uint) error {
+	query := "DELETE FROM user WHERE id = $1"
+	if err := s.db.QueryRowContext(ctx, query, id).Err(); err != nil {
+		return err
+	}
 	return nil
+
 }
 
 func (s *UserStore) Get(ctx context.Context, id uint) (*User, error) {
-	return nil, nil
+	var user User
+	query := "SELECT * FROM user WHERE id = $1"
+	row := s.db.QueryRowContext(ctx, query, id)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found by id: %d", id)
+		}
+		return nil, fmt.Errorf("user by id: %d, %v", id, err)
+	}
+	return &user, nil
 }
 func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
-	return nil, nil
-}
-func (s *UserStore) CreateAndActive(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
-	return nil
+	var user User
+	query := "SELECT * FROM user WHERE email = $1"
+	row := s.db.QueryRowContext(ctx, query, email)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &user, fmt.Errorf("user not found by email: %s", email)
+		}
+		return &user, err
+	}
+	return &user, nil
+
 }
